@@ -21,22 +21,22 @@ draws charts, flags anomalies (with reasons), checks data quality and remembers 
 ## Architecture
 ```mermaid
 flowchart LR
-  U[User] --> UI[Streamlit UI]
-  UI -->|CSV| L[Loader & Validator]
-  L --> DB[(DuckDB in-memory)]
-  UI -->|question + history| A[Analyst Orchestrator]
-  A -->|schema + samples| P[LLM Planner (Claude)]
-  P -->|JSON plan| A
-  A -->|SQL| G[SQL Guard: SELECT-only]
+  U["User"] --> UI["Streamlit UI"]
+  UI -->|"CSV files"| L["Loader and Validator"]
+  L --> DB[("DuckDB in-memory")]
+  UI -->|"question + history"| A["Analyst Orchestrator"]
+  A -->|"schema + samples"| P["LLM Planner - Gemini or Claude"]
+  P -->|"JSON plan"| A
+  A -->|"SQL"| G["SQL Guard - SELECT only"]
   G --> DB
-  A -->|anomaly / quality| S[Stats engine: IQR + MAD]
-  DB --> R[Result DataFrame]
+  A -->|"anomaly or quality"| S["Stats engine - IQR + MAD"]
+  DB --> R["Result DataFrame"]
   S --> R
-  R --> C[Plotly chart builder]
-  R --> N[LLM Narrator (streaming)]
+  R --> C["Plotly chart builder"]
+  R --> N["LLM Narrator - streaming"]
   C --> UI
   N --> UI
-  A -. errors → retry with feedback .-> P
+  A -.->|"SQL error: retry with feedback"| P
 ```
 
 **Flow:** (1) planner returns JSON `{intent, reasoning, sql, pandas, chart}` → (2) SQL is validated, executed on DuckDB; on SQL error the
